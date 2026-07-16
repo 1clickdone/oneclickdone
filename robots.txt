@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://oneclickdone-website.vercel.app/sitemap.xml
