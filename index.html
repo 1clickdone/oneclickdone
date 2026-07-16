@@ -193,7 +193,7 @@ footer a:hover{color:var(--cyn)}
 /* ------- preloader (logo click intro) ------- */
 #loader{position:fixed;inset:0;z-index:200;background:#031B35;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .loader-inner{position:relative;text-align:center}
-#bigLogo{width:min(200px,40vw);height:auto;overflow:visible}
+#bigLogo{width:min(200px,40vw);height:auto;overflow:visible;opacity:0}
 #bigLogo .burst{transform-origin:44px 26px;transform:scale(0)}
 .ripple{position:absolute;top:34%;left:38%;width:70px;height:70px;border:2px solid var(--amb);border-radius:50%;transform:translate(-50%,-50%) scale(0);opacity:0;pointer-events:none}
 .loader-word{margin-top:26px;font-size:13px;letter-spacing:6px;color:#EDEFF5;opacity:0}
@@ -201,11 +201,12 @@ footer a:hover{color:var(--cyn)}
 #flyCursor{position:absolute;width:34px;height:34px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.5));opacity:0;z-index:5}
 
 /* ------- yellow trimmer spine ------- */
-.spine{position:fixed;left:18px;top:0;bottom:0;width:3px;z-index:60;pointer-events:none}
+.spine{position:fixed;right:18px;top:0;bottom:0;width:3px;z-index:60;pointer-events:none}
 .spine .rail{position:absolute;inset:0;background:rgba(255,194,75,.14)}
 .spine .fill{position:absolute;top:0;left:0;width:100%;height:0;background:var(--amb);box-shadow:0 0 14px rgba(255,194,75,.55)}
-.spine .trim{position:absolute;left:-7px;top:0;width:17px;height:28px;border:2px solid var(--amb);border-radius:6px;background:rgba(3,27,53,.9);box-shadow:0 0 16px rgba(255,194,75,.45);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px}
-.spine .trim i{display:block;width:7px;height:1.5px;background:var(--amb)}
+.spine .trim{position:absolute;left:50%;top:0;width:26px;height:26px;transform:translateX(-50%);z-index:2}
+.spine .trim::before{content:"";position:absolute;inset:-6px;background:var(--bg);border-radius:8px;z-index:-1}
+.spine .trim svg{width:100%;height:100%;filter:drop-shadow(0 0 6px rgba(255,194,75,.6));position:relative;z-index:1}
 @media(max-width:760px){.spine{display:none}}
 
 /* ------- custom cursor + click burst ------- */
@@ -250,7 +251,15 @@ footer a:hover{color:var(--cyn)}
 <!-- YELLOW TRIMMER SPINE -->
 <div class="spine" aria-hidden="true">
   <div class="rail"></div><div class="fill" id="spineFill"></div>
-  <div class="trim" id="spineTrim"><i></i><i></i></div>
+  <div class="trim" id="spineTrim">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#FFC24B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(90deg)">
+      <circle cx="6" cy="6" r="3"></circle>
+      <circle cx="6" cy="18" r="3"></circle>
+      <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+      <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+      <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+    </svg>
+  </div>
 </div>
 
 <div class="cursor-ring" id="cring" aria-hidden="true"></div>
@@ -505,13 +514,20 @@ if(!reduced && window.gsap){
     document.body.style.overflow='';
   }});
   intro
+    /* blank color screen, nothing visible yet */
+    .set('#bigLogo',{opacity:0,scale:.7,transformOrigin:'50% 50%'})
     .set('#flyCursor',{opacity:1,x:innerWidth*.34,y:innerHeight*.3})
-    .to('#flyCursor',{x:0,y:0,duration:1,ease:'power3.inOut'})
+    /* cursor flies in across the blank screen */
+    .to('#flyCursor',{x:0,y:0,duration:1.1,ease:'power3.inOut',delay:.3})
+    /* click: cursor squashes */
     .to('#cursorShape',{scale:.9,transformOrigin:'50% 50%',duration:.09,yoyo:true,repeat:1},'-=.05')
-    .to('#flyCursor',{opacity:0,duration:.15},'<')
+    /* on click: flying cursor hides, logo pops in, ripple + burst fire together */
+    .to('#flyCursor',{opacity:0,duration:.12},'<')
+    .to('#bigLogo',{opacity:1,scale:1,duration:.35,ease:'back.out(2.4)'},'<')
     .to('.ripple',{scale:3,opacity:0,duration:.7,ease:'power2.out',startAt:{opacity:1,scale:0}},'<')
     .to('#bigLogo .burst line',{scale:1,duration:.45,ease:'back.out(2.5)',stagger:.06},'<+.05')
     .to('.loader-word',{opacity:1,y:0,duration:.5,startAt:{y:12}},'-=.2')
+    /* screen opens */
     .to('#loader',{yPercent:-100,duration:.85,ease:'power4.inOut',delay:.5,onStart:heroIn});
 
   /* generic reveals */
@@ -592,7 +608,7 @@ function spine(){
 addEventListener('scroll',spine,{passive:true});addEventListener('resize',spine);spine();
 
 /* order form — set your Formspree endpoint below to go live */
-const FORM_ENDPOINT = "https://formspree.io/f/mqerpzlv"; // e.g. "https://formspree.io/f/abcdwxyz"  (free account at formspree.io)
+const FORM_ENDPOINT = "https://formspree.io/f/mqerpzlv";
 document.getElementById('orderForm').addEventListener('submit',async e=>{
   e.preventDefault();
   const btn=e.target.querySelector('.submit'), orig=btn.textContent;
